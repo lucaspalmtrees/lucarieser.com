@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Luca Rieser — Fotografie</title>
+  <meta name="description" content="Portfolio von Luca Rieser — Fotografie aus Spanien, New York, Hong Kong und mehr.">
+  <link rel="icon" type="image/png" href="Logo%20Luca%20Rieser/LOGO%20NAH.png">
+  <link rel="stylesheet" href="assets/fonts.css">
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+  <!-- ====== Blenden-Cursor ====== -->
+  <div id="cursor" aria-hidden="true">
+    <svg viewBox="0 0 100 100">
+      <defs><clipPath id="apClip"><circle cx="50" cy="50" r="45"/></clipPath></defs>
+      <circle class="cur-ring" cx="50" cy="50" r="47"></circle>
+      <g class="cur-blades" clip-path="url(#apClip)">
+        <g><path class="blade" d="M51.6 4 A46 46 0 0 1 88.6 24.9 L55.7 41.8 Z"/></g>
+        <g transform="rotate(60 50 50)"><path class="blade" d="M51.6 4 A46 46 0 0 1 88.6 24.9 L55.7 41.8 Z"/></g>
+        <g transform="rotate(120 50 50)"><path class="blade" d="M51.6 4 A46 46 0 0 1 88.6 24.9 L55.7 41.8 Z"/></g>
+        <g transform="rotate(180 50 50)"><path class="blade" d="M51.6 4 A46 46 0 0 1 88.6 24.9 L55.7 41.8 Z"/></g>
+        <g transform="rotate(240 50 50)"><path class="blade" d="M51.6 4 A46 46 0 0 1 88.6 24.9 L55.7 41.8 Z"/></g>
+        <g transform="rotate(300 50 50)"><path class="blade" d="M51.6 4 A46 46 0 0 1 88.6 24.9 L55.7 41.8 Z"/></g>
+      </g>
+    </svg>
+    <span class="cur-label"></span>
+  </div>
+
+  <!-- ====== Intro: Foto-Shuffle ====== -->
+  <div id="intro" role="presentation">
+    <video id="introVid" class="intro-video" muted playsinline preload="auto"></video>
+    <div class="intro-stage">
+      <img id="introImg" alt="">
+    </div>
+    <div class="intro-meta">
+      <span class="intro-name">LUCA RIESER</span>
+      <span class="intro-count" id="introCount">00</span>
+    </div>
+    <span class="intro-skip">Klicken zum Überspringen</span>
+  </div>
+
+  <!-- ====== Shutter-Blitz (Klick-Effekt) ====== -->
+  <div id="shutterFlash" aria-hidden="true"></div>
+
+  <!-- ====== Navigation ====== -->
+  <header id="nav">
+    <a href="#top" class="nav-logo" data-cursor="Start">
+      <img src="Logo%20Luca%20Rieser/LOGO%20NAH.png" alt="Luca Rieser">
+    </a>
+    <nav>
+      <a href="#alben" data-cursor="Alben">Alben</a>
+      <a href="#galerie" data-cursor="Galerie">Galerie</a>
+      <a href="#youtube" data-cursor="Video">YouTube</a>
+      <a href="#kontakt" data-cursor="Hallo">Kontakt</a>
+    </nav>
+  </header>
+
+  <main id="top">
+
+    <!-- ====== Hero ====== -->
+    <section id="hero">
+      <div class="hero-bg"><img id="heroImg" alt=""></div>
+      <div class="hero-overlay"></div>
+      <div class="hero-content">
+        <p class="hero-kicker reveal">Portfolio · Fotografie</p>
+        <h1 class="hero-title" id="heroTitle">LUCA RIESER</h1>
+        <p class="hero-tag reveal" id="heroTag"></p>
+        <div class="hero-actions reveal">
+          <a href="#alben" class="btn btn-solid" data-cursor="Los">Alben entdecken</a>
+          <a href="#" id="heroYt" class="btn btn-ghost" data-cursor="Play" target="_blank" rel="noopener">▶ YouTube</a>
+        </div>
+      </div>
+      <div class="hero-scroll" aria-hidden="true"><span></span></div>
+    </section>
+
+    <!-- ====== Alben ====== -->
+    <section id="alben" class="section">
+      <div class="section-head reveal">
+        <span class="section-num">01</span>
+        <h2>Alben</h2>
+        <p>Länder &amp; Städte — klick dich durch.</p>
+      </div>
+      <div class="album-grid" id="albumGrid"><!-- JS --></div>
+    </section>
+
+    <!-- ====== Galerie ====== -->
+    <section id="galerie" class="section">
+      <div class="section-head reveal">
+        <span class="section-num">02</span>
+        <h2 id="galTitle">Galerie</h2>
+        <p id="galSub"></p>
+      </div>
+
+      <div class="gal-controls reveal">
+        <div class="chips" id="chipBar" role="tablist"><!-- JS --></div>
+        <div class="modes" id="modeBar" role="group" aria-label="Ansicht">
+          <button class="mode-btn" data-mode="grid" data-cursor="Raster" title="Raster">
+            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8"/><rect x="13" y="3" width="8" height="8"/><rect x="3" y="13" width="8" height="8"/><rect x="13" y="13" width="8" height="8"/></svg>
+            <span>Raster</span>
+          </button>
+          <button class="mode-btn" data-mode="mosaic" data-cursor="Mosaik" title="Mosaik">
+            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="12"/><rect x="13" y="3" width="8" height="6"/><rect x="13" y="11" width="8" height="10"/><rect x="3" y="17" width="8" height="4"/></svg>
+            <span>Mosaik</span>
+          </button>
+          <button class="mode-btn" data-mode="film" data-cursor="Film" title="Filmstreifen">
+            <svg viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12"/><line x1="7" y1="6" x2="7" y2="18"/><line x1="12" y1="6" x2="12" y2="18"/><line x1="17" y1="6" x2="17" y2="18"/></svg>
+            <span>Film</span>
+          </button>
+          <button class="mode-btn" data-mode="stack" data-cursor="Stapel" title="Stapel">
+            <svg viewBox="0 0 24 24"><rect x="6" y="2" width="14" height="14" transform="rotate(6 13 9)"/><rect x="3" y="7" width="14" height="14"/></svg>
+            <span>Stapel</span>
+          </button>
+        </div>
+      </div>
+
+      <div id="gallery"><!-- JS --></div>
+    </section>
+
+    <!-- ====== YouTube ====== -->
+    <section id="youtube" class="section">
+      <div class="yt-card reveal">
+        <div class="yt-play" aria-hidden="true"><span></span></div>
+        <h2>Bewegte Bilder?</h2>
+        <p>Meine Reisen gibt es auch als Videos — direkt auf meinem YouTube-Kanal.</p>
+        <a href="#" id="ytLink" class="btn btn-solid" target="_blank" rel="noopener" data-cursor="Play">Zum Kanal</a>
+      </div>
+    </section>
+
+    <!-- ====== Kontakt ====== -->
+    <section id="kontakt" class="section">
+      <div class="section-head reveal">
+        <span class="section-num">03</span>
+        <h2>Kontakt</h2>
+        <p>Anfragen für Shootings, Prints &amp; Zusammenarbeit.</p>
+      </div>
+      <div class="contact-wrap">
+        <div class="contact-photo reveal">
+          <img id="contactImg" alt="Porträt von Luca Rieser">
+          <div class="cp-caption">
+            <span class="ac-country">Hinter der Kamera</span>
+            <h3>Luca Rieser</h3>
+          </div>
+        </div>
+        <div class="contact-body reveal">
+          <form id="contactForm" novalidate>
+            <div class="form-row">
+              <label>Name
+                <input type="text" id="cfName" name="name" required autocomplete="name" placeholder="Dein Name">
+              </label>
+              <label>E-Mail
+                <input type="email" id="cfMail" name="email" required autocomplete="email" placeholder="deine@mail.ch">
+              </label>
+            </div>
+            <label>Betreff
+              <input type="text" id="cfSubject" name="betreff" placeholder="Worum geht's?">
+            </label>
+            <label>Nachricht
+              <textarea id="cfMsg" name="nachricht" rows="5" required placeholder="Erzähl mir von deiner Idee oder deinem Projekt …"></textarea>
+            </label>
+            <button type="submit" class="btn btn-solid" id="cfSubmit" data-cursor="Senden">Anfrage senden</button>
+            <p class="form-note" id="formNote">Deine Anfrage landet direkt in meinem Postfach.</p>
+          </form>
+          <div class="socials">
+            <a id="socIg" href="#" target="_blank" rel="noopener" data-cursor="Insta">
+              <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1" fill="currentColor" stroke="none"/></svg>
+              Instagram
+            </a>
+            <a id="socLi" href="#" target="_blank" rel="noopener" data-cursor="LinkedIn">
+              <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="8" y1="11" x2="8" y2="16.5"/><circle cx="8" cy="7.8" r="0.8" fill="currentColor" stroke="none"/><path d="M11.5 16.5v-5.5m0 2.2c0-1.4 4.5-2.3 4.5 0.6v2.7"/></svg>
+              LinkedIn
+            </a>
+            <a id="socYt" href="#" target="_blank" rel="noopener" data-cursor="Play">
+              <svg viewBox="0 0 24 24"><rect x="2.5" y="5.5" width="19" height="13" rx="4"/><path d="M10.2 9.3l4.6 2.7-4.6 2.7z" fill="currentColor" stroke="none"/></svg>
+              YouTube
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <span id="footName"></span>
+    <span class="foot-dot">·</span>
+    <a href="#" id="footYt" target="_blank" rel="noopener" data-cursor="Play">YouTube</a>
+    <span class="foot-dot">·</span>
+    <a href="#" id="footIg" target="_blank" rel="noopener" data-cursor="Insta">Instagram</a>
+    <span class="foot-dot">·</span>
+    <a href="#" id="footLi" target="_blank" rel="noopener" data-cursor="LinkedIn">LinkedIn</a>
+    <span class="foot-dot">·</span>
+    <a href="#top" data-cursor="Hoch">Nach oben ↑</a>
+  </footer>
+
+  <!-- ====== Lightbox ====== -->
+  <div id="lightbox" aria-hidden="true">
+    <button class="lb-close" data-cursor="Zu" aria-label="Schliessen">✕</button>
+    <button class="lb-arrow lb-prev" data-cursor="Zurück" aria-label="Vorheriges">‹</button>
+    <figure class="lb-stage">
+      <img id="lbImg" alt="">
+      <figcaption id="lbCaption"></figcaption>
+    </figure>
+    <button class="lb-arrow lb-next" data-cursor="Weiter" aria-label="Nächstes">›</button>
+  </div>
+
+  <script src="assets/photos.js"></script>
+  <script src="assets/app.js"></script>
+</body>
+</html>
