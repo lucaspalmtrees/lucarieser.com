@@ -16,7 +16,7 @@ const SITE = {
   linkedin: "https://ch.linkedin.com/in/luca-rieser-b77211278",
   email: "lucarieser@icloud.com",
   formspree: "https://formspree.io/f/xlgkojgl",
-  portrait: "Bilder für Kontakt Luca/L1011538.jpg",
+  portrait: "Bilder für Kontakt Luca/L1011539.jpg",
   logo: "Logo Luca Rieser/LOGO NAH.png",
   introVideo: "Logo Luca Rieser/SYNTH LOGO-0000.mov",
   year: new Date().getFullYear()
