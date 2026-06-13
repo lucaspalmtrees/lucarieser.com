@@ -125,21 +125,6 @@ button { font-family: inherit; background: none; border: none; color: inherit; }
 #intro.done { opacity: 0; pointer-events: none; }
 #intro.hidden { display: none; }
 
-/* Animiertes Logo-Video als Auftakt */
-.intro-video {
-  display: none;
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  background: #000;
-  opacity: 0;
-  transition: opacity .6s var(--ease);
-  z-index: 2;
-}
-.intro-video.show { opacity: 1; }
-
 .intro-stage {
   width: min(62vw, 760px);
   height: min(58vh, 560px);
@@ -196,7 +181,7 @@ body.ready #nav { opacity: 1; transform: none; }
 
 .nav-logo { display: block; }
 /* Logo «fokussiert» sich beim Laden wie ein Objektiv: unscharf → scharf */
-.nav-logo img {
+.nav-logo video {
   height: 46px;
   width: auto;
   display: block;
@@ -208,12 +193,12 @@ body.ready #nav { opacity: 1; transform: none; }
     filter 1s var(--ease) .4s,
     transform 1s var(--ease) .4s;
 }
-body.ready .nav-logo img {
+body.ready .nav-logo video {
   opacity: 1;
   filter: blur(0);
   transform: scale(1);
 }
-.nav-logo:hover img {
+.nav-logo:hover video {
   transform: scale(1.1);
   transition: transform .4s var(--ease);
 }

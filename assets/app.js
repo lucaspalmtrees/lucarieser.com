@@ -106,12 +106,9 @@
     let ended = false;
     const startedAt = Date.now();
 
-    const vid = $("#introVid");
-
     function end() {
       if (ended) return;
       ended = true;
-      if (vid) { try { vid.pause(); } catch (e) {} }
       try { sessionStorage.setItem("introSeen", "1"); } catch (e) {}
       // Letztes Bild wird zum Hero-Hintergrund (nahtloser Übergang)
       $("#heroImg").src = img.src || coverOf(ALBUMS[0]);
@@ -142,36 +139,8 @@
 
     intro.addEventListener("click", end);
 
-    function startShuffle() {
-      if (ended) return;
-      if (vid && vid.style.display !== "none") {
-        vid.classList.remove("show");
-        setTimeout(function () { vid.pause(); vid.style.display = "none"; }, 600);
-      }
-      setTimeout(tick, 150);
-    }
-
-    if (!seen && SITE.introVideo && vid) {
-      // Auftakt: animiertes Logo-Video, danach der Foto-Shuffle
-      let vidDone = false;
-      const videoFinished = function () {
-        if (vidDone) return;
-        vidDone = true;
-        startShuffle();
-      };
-      vid.src = encodeURI(SITE.introVideo);
-      vid.style.display = "block";
-      vid.addEventListener("canplay", function () { vid.classList.add("show"); });
-      vid.addEventListener("ended", videoFinished);
-      vid.addEventListener("error", videoFinished);
-      const playPromise = vid.play();
-      if (playPromise && playPromise.catch) playPromise.catch(videoFinished);
-      setTimeout(videoFinished, 2000);  // Logo nur kurz: nach 2s direkt zum Shuffle
-      setTimeout(end, 12000);           // absolute Sicherheitsgrenze
-    } else {
-      setTimeout(tick, 200);
-      setTimeout(end, 12000); // absolute Sicherheitsgrenze
-    }
+    setTimeout(tick, 200);
+    setTimeout(end, 12000); // absolute Sicherheitsgrenze
   }
 
   /* ---------- Blenden-Cursor ---------- */
