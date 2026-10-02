@@ -2,6 +2,9 @@
 # ============================================================
 #  Web-Versionen der Fotos erzeugen (für macOS, per Doppelklick)
 #  ------------------------------------------------------------
+#  Funktioniert mit JEDEM Ordner in "Fotos" – der Name ist egal,
+#  am Skript muss nie etwas angepasst werden.
+#
 #  1. Legt in jedem Foto-Ordner einen Unterordner "web" an und
 #     speichert dort verkleinerte Kopien (max. 2000 px, ~300 KB).
 #     Die Website lädt diese schnellen Versionen und greift nur
@@ -74,5 +77,6 @@ else
 fi
 
 echo ""
-echo "Vergiss nicht, die neuen Ordner (inkl. \"web\") mit hochzuladen."
+echo "Auf GitHub reicht es, pro neuem Album den Ordner mit dem"
+echo "Unterordner \"web\" in \"Fotos\" hochzuladen – ohne die grossen Originale."
 read -r -p "Enter drücken zum Schliessen …"

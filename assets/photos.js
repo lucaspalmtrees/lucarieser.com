@@ -1,12 +1,16 @@
 /* ============================================================
    FOTO-DATENBANK  —  Hier neue Alben & Fotos eintragen
    ------------------------------------------------------------
-   So fügst du Fotos hinzu:
-   1. Lege die JPGs in einen Ordner unter "Fotos/" (z.B. Fotos/Tokyo)
-   2. Ergänze unten ein Album-Objekt oder erweitere die "photos"-Liste
-   3. Fertig — die Website liest alles aus dieser Datei.
-      Neue Alben erscheinen automatisch in der Serienliste,
-      auf der Startseite und in der Bildansicht.
+   So fügst du ein neues Album hinzu (z.B. "Tokyo"):
+   1. Lege die JPGs auf deinem Mac in den Ordner "Fotos/Tokyo"
+   2. Doppelklick auf "bilder-optimieren.command": es erstellt
+      "Fotos/Tokyo/web" und den fertigen Eintrag in "neues-album.txt"
+   3. Eintrag unten vor der letzten Zeile "];" einfügen
+   4. Auf GitHub nur den Ordner "Tokyo" mit dem Unterordner "web"
+      in "Fotos" hochladen (die grossen Originale braucht es nicht)
+   Die Website liest alles aus dieser Datei. Neue Alben erscheinen
+   automatisch in der Serienliste, auf der Startseite und in der
+   Bildansicht.
 
    Optional pro Album:
    - "featured": 4–6 Dateinamen, die auf der Startseite gross
