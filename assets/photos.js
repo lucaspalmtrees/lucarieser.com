@@ -25,14 +25,13 @@ const SITE = {
   youtube: "https://www.youtube.com/@lucarieser",
   instagram: "https://www.instagram.com/lucarieser/",
   linkedin: "https://ch.linkedin.com/in/luca-rieser-b77211278",
-  email: "lucarieser@icloud.com",
   formspree: "https://formspree.io/f/xlgkojgl",
   // Ordnername ist auf dem Mac als "u + Umlautpunkte" gespeichert, daher \u0308
   portrait: "Bilder fu\u0308r Kontakt Luca/L1011539.jpg",
   hero: { album: "newyork", photo: "L1012629.jpg" },
   // Danach folgt automatisch: "Fotografiert in Spanien, New York und …"
   intro: "Strassen, Städte und Licht.",
-  about: "[Zwei, drei Sätze über dich: wer du bist, wo du lebst, womit du fotografierst und was dich auf der Strasse interessiert.]",
+  about: "Ich fotografiere, was mir auf der Strasse begegnet. Kameras begleiten mich schon mein ganzes Leben, eine ist immer dabei. Zuhause in der Schweiz.",
   year: new Date().getFullYear()
 };
 
