@@ -176,6 +176,11 @@ a:hover { color: var(--accent); }
 .pat-2 .f4 { grid-column: 10 / 13; align-self: end; }
 .pat-2 .f5 { grid-column: 4 / 10; }
 
+/* Hochformat: auf Bildschirmhöhe begrenzen statt überlang */
+.sg .is-tall .ph { width: auto; max-width: 100%; }
+.sg .is-tall .ph img { width: auto; max-width: 100%; max-height: 86vh; }
+.sg .is-tall .cap { max-width: calc(86vh * 2 / 3); }
+
 /* Alle Bilder */
 .more-bar { margin-top: 56px; display: flex; justify-content: flex-start; }
 .more-btn {
