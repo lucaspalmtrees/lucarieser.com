@@ -123,4 +123,37 @@ const ALBUMS = [
   //     "DATEINAME.jpg"
   //   ]
   // }
+ ,{
+    id: "portugal",
+    title: "Portugal",
+    country: "Portugal",
+    city: "Portugal",
+    description: "[Ende von Europa]",
+    folder: "Fotos/Portugal",
+    cover: "L1014496.jpg",
+    photos: [
+      "L1014496.jpg",
+      "L1014505.jpg",
+      "L1014524.jpg",
+      "L1014526.jpg",
+      "L1014536.jpg",
+      "L1014545.jpg",
+      "L1014563.jpg",
+      "L1014570.jpg",
+      "L1014585.jpg",
+      "L1014593.jpg",
+      "L1014650.jpg",
+      "L1014671.jpg",
+      "L1014679.jpg",
+      "L1014688.jpg",
+      "L1014742.jpg",
+      "L1014743.jpg",
+      "L1014745.jpg",
+      "L1014791-2.jpg",
+      "L1014801-2.jpg",
+      "L1014802.jpg",
+      "L1014819.jpg",
+      "L1014829.jpg"
+    ]
+  }
 ];
