@@ -5,7 +5,14 @@
    1. Lege die JPGs in einen Ordner unter "Fotos/" (z.B. Fotos/Tokyo)
    2. Ergänze unten ein Album-Objekt oder erweitere die "photos"-Liste
    3. Fertig — die Website liest alles aus dieser Datei.
-   (Oder sag es einfach Claude im Cowork-Projekt, er erledigt das.)
+      Neue Alben erscheinen automatisch in der Serienliste,
+      auf der Startseite und in der Bildansicht.
+
+   Optional pro Album:
+   - "featured": 4–6 Dateinamen, die auf der Startseite gross
+     gezeigt werden (Reihenfolge = Reihenfolge auf der Seite).
+     Fehlt das Feld, werden die ersten 6 Fotos genommen.
+     Alle übrigen Fotos erscheinen unter "Alle Bilder zeigen".
    ============================================================ */
 
 const SITE = {
@@ -16,9 +23,12 @@ const SITE = {
   linkedin: "https://ch.linkedin.com/in/luca-rieser-b77211278",
   email: "lucarieser@icloud.com",
   formspree: "https://formspree.io/f/xlgkojgl",
-  portrait: "Bilder für Kontakt Luca/L1011539.jpg",
-  logo: "Logo Luca Rieser/LOGO NAH.png",
-  introVideo: "Logo Luca Rieser/SYNTH LOGO-0000.mov",
+  // Ordnername ist auf dem Mac als "u + Umlautpunkte" gespeichert, daher \u0308
+  portrait: "Bilder fu\u0308r Kontakt Luca/L1011539.jpg",
+  hero: { album: "newyork", photo: "L1012629.jpg" },
+  // Danach folgt automatisch: "Fotografiert in Spanien, New York und …"
+  intro: "Strassen, Städte und Licht.",
+  about: "[Zwei, drei Sätze über dich: wer du bist, wo du lebst, womit du fotografierst und was dich auf der Strasse interessiert.]",
   year: new Date().getFullYear()
 };
 
@@ -30,7 +40,8 @@ const ALBUMS = [
     city: "Spanien",
     description: "Sonne, Schatten und mediterrane Strassen.",
     folder: "Fotos/SPAIN",
-    cover: "L1012082-2.jpg",
+    cover: "L1011995-2.jpg",
+    featured: ["L1011995-2.jpg", "L1012260-2.jpg", "L1012281-2.jpg", "L1012140-2.jpg", "L1012225-2.jpg", "L1012017-2.jpg"],
     photos: [
       "L1011922-2.jpg",
       "L1011956-2.jpg",
@@ -54,6 +65,7 @@ const ALBUMS = [
     description: "Die Stadt, die niemals stillsteht.",
     folder: "Fotos/NewYork",
     cover: "L1012690.jpg",
+    featured: ["L1012690.jpg", "L1012939.jpg", "L1012948.jpg", "L1012703.jpg", "L1012837.jpg"],
     photos: [
       "L1012518.jpg",
       "L1012571.jpg",
@@ -76,7 +88,8 @@ const ALBUMS = [
     city: "Hong Kong",
     description: "Neon, Dichte und vertikale Welten.",
     folder: "Fotos/Hong Kong",
-    cover: "L1013280-2-2.jpg",
+    cover: "L1013281-2.jpg",
+    featured: ["L1013281-2.jpg", "L1013348-2.jpg", "L1013100-2.jpg", "L1013247-2-2.jpg", "L1013425-2.jpg"],
     photos: [
       "L1013043-2-2.jpg",
       "L1013069-2-2.jpg",
@@ -95,4 +108,19 @@ const ALBUMS = [
       "L1013447-2.jpg"
     ]
   }
+  // ---- Vorlage für Portugal (Ordner "Fotos/Portugal" anlegen, dann
+  //      die Kommentarzeichen entfernen und Dateinamen eintragen) ----
+  // ,{
+  //   id: "portugal",
+  //   title: "Portugal",
+  //   country: "Portugal",
+  //   city: "Portugal",
+  //   description: "[Eine Zeile zur Serie]",
+  //   folder: "Fotos/Portugal",
+  //   cover: "DATEINAME.jpg",
+  //   photos: [
+  //     "DATEINAME.jpg",
+  //     "DATEINAME.jpg"
+  //   ]
+  // }
 ];

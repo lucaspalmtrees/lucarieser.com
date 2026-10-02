@@ -1,587 +1,323 @@
 /* ============================================================
-   LUCA RIESER — Portfolio · App-Logik
-   Intro-Shuffle · Blenden-Cursor · Galerie-Modi · Lightbox
+   LUCA RIESER — Portfolio · Logik
+   Liest alles aus assets/photos.js (SITE & ALBUMS).
    ============================================================ */
 (function () {
   "use strict";
 
-  const $ = (s, c) => (c || document).querySelector(s);
-  const $$ = (s, c) => Array.prototype.slice.call((c || document).querySelectorAll(s));
-
-  /* ---------- Daten ---------- */
-  const srcOf = (album, file) => encodeURI(album.folder + "/" + file);
-  const coverOf = (album) => srcOf(album, album.cover || album.photos[0]);
-
-  const ALL = [];
-  ALBUMS.forEach(function (a) {
-    a.photos.forEach(function (f) {
-      ALL.push({ album: a, file: f, src: srcOf(a, f) });
-    });
-  });
-
-  function shuffle(arr) {
-    const r = arr.slice();
-    for (let i = r.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      const t = r[i]; r[i] = r[j]; r[j] = t;
-    }
-    return r;
-  }
-  const seeded = (n) => ((n * 9301 + 49297) % 233280) / 233280;
-
+  const $ = function (s, r) { return (r || document).querySelector(s); };
+  const $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  /* ---------- Zustand ---------- */
-  let currentAlbum = "all";
-  let currentMode = "grid";
-  let stackIdx = 0;
-  let stackBusy = false;
-  let dragMoved = 0;
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+  function pad2(n) { return String(n).padStart(2, "0"); }
+  // Web-Version (verkleinert, Unterordner "web") mit Rückfall aufs Original
+  function orig(album, file) { return encodeURI(album.folder + "/" + file); }
+  function src(album, file) { return encodeURI(album.folder + "/web/" + file); }
+  const FALLBACK = ' onerror="if(this.dataset.orig&&this.src.indexOf(this.dataset.orig)<0){this.src=this.dataset.orig}"';
+  function webPath(path) {
+    const i = path.lastIndexOf("/");
+    return encodeURI(path.slice(0, i) + "/web" + path.slice(i));
+  }
+  // "L1013280-2-2.jpg" -> "L1013280"
+  function frameNo(file) {
+    const base = file.replace(/\.[^.]+$/, "");
+    const m = base.match(/^[A-Za-z]*\d+/);
+    return m ? m[0] : base;
+  }
+  function listJoin(arr) {
+    if (arr.length < 2) return arr.join("");
+    return arr.slice(0, -1).join(", ") + " und " + arr[arr.length - 1];
+  }
+
+  /* ---------- Fotos aufbereiten ---------- */
+  // Pro Album: Reihenfolge = featured zuerst, dann der Rest.
+  ALBUMS.forEach(function (a) {
+    const featured = (a.featured && a.featured.length ? a.featured : a.photos.slice(0, 6))
+      .filter(function (f) { return a.photos.indexOf(f) !== -1; });
+    const rest = a.photos.filter(function (f) { return featured.indexOf(f) === -1; });
+    a._featured = featured;
+    a._rest = rest;
+    a._items = featured.concat(rest).map(function (f) {
+      return { album: a, file: f, src: src(a, f), orig: orig(a, f), id: frameNo(f) };
+    });
+  });
+  const TOTAL = ALBUMS.reduce(function (n, a) { return n + a.photos.length; }, 0);
+
+  function photoBtn(item, idx, opts) {
+    opts = opts || {};
+    const alt = item.album.title + ", Bild " + item.id;
+    return '<button type="button" class="ph" data-album="' + esc(item.album.id) + '" data-idx="' + idx + '" aria-label="Bild gross ansehen: ' + esc(item.id) + '">' +
+      '<img src="' + item.src + '" data-orig="' + item.orig + '"' + FALLBACK + ' alt="' + esc(alt) + '"' +
+      (opts.eager ? ' fetchpriority="high"' : ' loading="lazy"') + ' decoding="async">' +
+      '</button>';
+  }
 
   /* ---------- Texte & Links ---------- */
   function initTexts() {
-    $("#heroTag").textContent = SITE.tagline;
+    $("#introText").textContent = SITE.intro + " Fotografiert in " +
+      listJoin(ALBUMS.map(function (a) { return a.title; })) + ".";
+    $("#aboutText").textContent = SITE.about || "";
     $("#footName").textContent = "© " + SITE.year + " " + SITE.name;
-    ["#heroYt", "#ytLink", "#footYt", "#socYt"].forEach(function (id) {
-      const el = $(id);
-      if (el) el.href = SITE.youtube;
-    });
-    [["#socIg", SITE.instagram], ["#footIg", SITE.instagram],
-     ["#socLi", SITE.linkedin], ["#footLi", SITE.linkedin]].forEach(function (pair) {
-      const el = $(pair[0]);
-      if (el && pair[1]) el.href = pair[1];
-    });
-    if (SITE.portrait) $("#contactImg").src = encodeURI(SITE.portrait);
-    // Hero-Titel in animierbare Buchstaben zerlegen
-    const h = $("#heroTitle");
-    const text = h.textContent;
-    h.textContent = "";
-    let d = 0;
-    text.split("").forEach(function (ch) {
-      const span = document.createElement("span");
-      if (ch === " ") {
-        span.className = "sp";
-      } else {
-        span.className = "ch";
-        span.textContent = ch;
-        span.style.transitionDelay = (d * 45) + "ms";
-        d++;
-      }
-      h.appendChild(span);
-    });
+
+    const mail = $("#mailLink");
+    mail.href = "mailto:" + SITE.email;
+    mail.textContent = SITE.email;
+
+    $$(".js-yt").forEach(function (a) { a.href = SITE.youtube; });
+    $$(".js-ig").forEach(function (a) { a.href = SITE.instagram; });
+    $$(".js-li").forEach(function (a) { a.href = SITE.linkedin; });
+
+    const p = $("#portrait");
+    p.onerror = function () { p.onerror = null; p.src = encodeURI(SITE.portrait); };
+    p.src = webPath(SITE.portrait);
+    $("#portraitCap").textContent = frameNo(SITE.portrait.split("/").pop());
   }
 
-  /* ---------- Intro: Foto-Shuffle ---------- */
-  function runIntro() {
-    const intro = $("#intro");
-    const img = $("#introImg");
-    const counter = $("#introCount");
-    let seen = false;
-    try { seen = sessionStorage.getItem("introSeen") === "1"; } catch (e) { /* file:// Einschränkung */ }
-
-    function reveal() {
-      document.body.classList.add("ready");
-      document.body.style.overflow = "";
-    }
-    document.body.style.overflow = "hidden"; // kein Scrollen während des Intros
-
-    if (reduceMotion) {
-      intro.classList.add("done", "hidden");
-      $("#heroImg").src = coverOf(ALBUMS[0]);
-      reveal();
-      return;
-    }
-
-    const pool = shuffle(ALL.map(function (p) { return p.src; }));
-    const maxShots = seen ? 9 : Math.min(pool.length, 26);
-    const loaded = [];
-    pool.forEach(function (src) {
-      const im = new Image();
-      im.onload = function () { loaded.push(src); };
-      im.src = src;
-    });
-
-    let shots = 0;
-    let delay = 160;
-    let ended = false;
-    const startedAt = Date.now();
-
-    function end() {
-      if (ended) return;
-      ended = true;
-      try { sessionStorage.setItem("introSeen", "1"); } catch (e) {}
-      // Letztes Bild wird zum Hero-Hintergrund (nahtloser Übergang)
-      $("#heroImg").src = img.src || coverOf(ALBUMS[0]);
-      intro.classList.add("expand");
-      setTimeout(function () {
-        intro.classList.add("done");
-        reveal();
-      }, 750);
-      setTimeout(function () { intro.classList.add("hidden"); }, 1800);
-    }
-
-    function tick() {
-      if (ended) return;
-      if (loaded.length === 0) {
-        // Noch nichts geladen — kurz warten, aber nie ewig blockieren
-        if (Date.now() - startedAt > 6000) { img.src = pool[0]; end(); return; }
-        setTimeout(tick, 100);
-        return;
-      }
-      img.src = loaded[shots % loaded.length];
-      counter.textContent = String(shots + 1).padStart(2, "0");
-      shots++;
-      if (shots >= maxShots && loaded.length > 3) { end(); return; }
-      if (shots >= maxShots + 10) { end(); return; }
-      delay = Math.max(48, delay * 0.91); // wird immer schneller
-      setTimeout(tick, delay);
-    }
-
-    intro.addEventListener("click", end);
-
-    setTimeout(tick, 200);
-    setTimeout(end, 12000); // absolute Sicherheitsgrenze
+  /* ---------- Einstiegsbild ---------- */
+  function renderHero() {
+    const h = SITE.hero || {};
+    const album = ALBUMS.find(function (a) { return a.id === h.album; }) || ALBUMS[0];
+    let idx = album._items.findIndex(function (it) { return it.file === h.photo; });
+    if (idx < 0) idx = 0;
+    const item = album._items[idx];
+    $("#hero").innerHTML = photoBtn(item, idx, { eager: true }) +
+      '<figcaption class="cap"><span>' + esc(album.title) + '</span><span>' + esc(item.id) + '</span></figcaption>';
   }
 
-  /* ---------- Blenden-Cursor ---------- */
-  function initCursor() {
-    if (!window.matchMedia("(pointer: fine)").matches) return;
-    const cur = $("#cursor");
-    const label = $(".cur-label", cur);
-    const flash = $("#shutterFlash");
-    let x = innerWidth / 2, y = innerHeight / 2, tx = x, ty = y;
-
-    document.addEventListener("mousemove", function (e) {
-      tx = e.clientX; ty = e.clientY;
-      cur.classList.add("on");
-    });
-    document.addEventListener("mouseleave", function () { cur.classList.remove("on"); });
-
-    (function loop() {
-      x += (tx - x) * 0.35;
-      y += (ty - y) * 0.35;
-      cur.style.transform = "translate(" + x + "px," + y + "px)";
-      requestAnimationFrame(loop);
-    })();
-
-    const HOVERABLE = "a, button, [data-cursor], .ph, .album-card, .stack-card, .chip";
-    document.addEventListener("mouseover", function (e) {
-      const t = e.target.closest(HOVERABLE);
-      if (t) {
-        cur.classList.add("open");
-        const labelled = t.closest("[data-cursor]");
-        label.textContent = labelled ? labelled.getAttribute("data-cursor") : "Ansehen";
-      } else {
-        cur.classList.remove("open");
-      }
-    });
-
-    document.addEventListener("mousedown", function (e) {
-      cur.classList.add("snap");
-      // Shutter-Blitz bei Klick auf ein Foto
-      if (e.target.closest(".ph, .stack-card, .album-card")) {
-        flash.classList.remove("fire");
-        void flash.offsetWidth;
-        flash.classList.add("fire");
-      }
-    });
-    document.addEventListener("mouseup", function () { cur.classList.remove("snap"); });
+  /* ---------- Serienliste ---------- */
+  function renderIndex() {
+    $("#serienCount").textContent = ALBUMS.length + " Serien · " + TOTAL + " Bilder";
+    $("#indexList").innerHTML = ALBUMS.map(function (a, i) {
+      const cover = a.photos.indexOf(a.cover) !== -1 ? a.cover : a._featured[0];
+      return '<li><a class="index-row grid" href="#' + esc(a.id) + '">' +
+        '<span class="num">' + pad2(i + 1) + '</span>' +
+        '<span class="name">' + esc(a.title) + '</span>' +
+        '<span class="desc">' + esc(a.description || "") + '</span>' +
+        '<span class="count">' + a.photos.length + '</span>' +
+        '<img class="pv" src="' + src(a, cover) + '" data-orig="' + orig(a, cover) + '"' + FALLBACK + ' alt="" loading="lazy" decoding="async">' +
+        '</a></li>';
+    }).join("");
   }
 
-  /* ---------- Scroll-Reveal ---------- */
-  function initReveal() {
-    const io = new IntersectionObserver(function (entries) {
-      entries.forEach(function (en) {
-        if (en.isIntersecting) {
-          en.target.classList.add("visible");
-          io.unobserve(en.target);
-        }
-      });
-    }, { threshold: 0.12 });
-    $$(".reveal, .album-card").forEach(function (el) { io.observe(el); });
-  }
+  /* ---------- Serien ---------- */
+  // Mobile Anordnung: erstes Bild randlos, dann links / rechts versetzt / breit
+  const MOBILE = ["m-left", "m-right", "m-wide"];
 
-  /* ---------- Alben ---------- */
-  function renderAlbums() {
-    const grid = $("#albumGrid");
-    grid.innerHTML = ALBUMS.map(function (a, i) {
-      return '<article class="album-card" data-album="' + a.id + '" data-cursor="Öffnen" style="transition-delay:' + (i * 0.12) + 's">' +
-        '<img src="' + coverOf(a) + '" alt="' + a.title + '" loading="lazy" decoding="async">' +
-        '<div class="ac-shade"></div>' +
-        '<span class="ac-arrow">→</span>' +
-        '<div class="ac-info">' +
-          '<span class="ac-country">' + a.country + '</span>' +
-          '<h3>' + a.title + '</h3>' +
-          '<div class="ac-meta"><span>' + (a.description || "") + '</span><span>' + a.photos.length + ' Fotos</span></div>' +
+  function renderSeries() {
+    $("#series").innerHTML = ALBUMS.map(function (a, i) {
+      const n = a.photos.length;
+      const feat = a._items.slice(0, a._featured.length).map(function (it, k) {
+        const m = k === 0 ? "m-full" : MOBILE[(k - 1) % 3];
+        return '<figure class="fade f' + (k % 6) + ' ' + m + '">' + photoBtn(it, k) +
+          '<figcaption class="cap"><span>' + esc(it.id) + '</span></figcaption></figure>';
+      }).join("");
+      const rest = a._items.slice(a._featured.length);
+      const more = rest.length ?
+        '<div class="more-bar wrap"><button type="button" class="more-btn" aria-expanded="false" aria-controls="all-' + esc(a.id) + '">Alle ' + n + ' Bilder zeigen</button></div>' +
+        '<div class="all wrap" id="all-' + esc(a.id) + '" hidden>' +
+        rest.map(function (it, k) {
+          const idx = a._featured.length + k;
+          return '<figure>' + photoBtn(it, idx) + '<figcaption class="cap"><span>' + esc(it.id) + '</span></figcaption></figure>';
+        }).join("") +
+        '</div>' : "";
+      return '<section class="serie" id="' + esc(a.id) + '" aria-labelledby="h-' + esc(a.id) + '">' +
+        '<div class="serie-head grid wrap fade">' +
+        '<span class="num">' + pad2(i + 1) + '</span>' +
+        '<h2 id="h-' + esc(a.id) + '">' + esc(a.title) + '</h2>' +
+        '<p>' + esc(a.description || "") + ' ' + n + ' Bilder.</p>' +
         '</div>' +
-      '</article>';
+        '<div class="sg grid wrap pat-' + (i % 3) + '">' + feat + '</div>' +
+        more +
+        '</section>';
     }).join("");
 
-    grid.addEventListener("click", function (e) {
-      const card = e.target.closest(".album-card");
-      if (!card) return;
-      setAlbum(card.getAttribute("data-album"));
-      $("#galerie").scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth" });
+    $$(".more-btn").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        const box = document.getElementById(btn.getAttribute("aria-controls"));
+        const open = box.hasAttribute("hidden");
+        box.toggleAttribute("hidden", !open);
+        btn.setAttribute("aria-expanded", String(open));
+        const n = box.closest(".serie").querySelectorAll(".ph").length;
+        btn.textContent = open ? "Weniger zeigen" : "Alle " + n + " Bilder zeigen";
+        if (!open) btn.closest(".serie").scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth" });
+      });
     });
   }
 
-  /* ---------- Galerie: Filter-Chips ---------- */
-  function renderChips() {
-    const bar = $("#chipBar");
-    let html = '<button class="chip" data-album="all" data-cursor="Alle">Alle Orte</button>';
-    ALBUMS.forEach(function (a) {
-      html += '<button class="chip" data-album="' + a.id + '" data-cursor="' + a.title + '">' + a.title + '</button>';
+  /* ---------- Bildansicht ---------- */
+  const lb = { el: null, img: null, album: null, idx: 0, last: null };
+
+  function lbShow() {
+    const items = lb.album._items;
+    const it = items[lb.idx];
+    lb.img.classList.remove("show");
+    lb.img.onerror = function () { lb.img.onerror = null; lb.img.src = it.orig; };
+    lb.img.src = it.src;
+    lb.img.alt = it.album.title + ", Bild " + it.id;
+    void lb.img.offsetWidth;
+    lb.img.classList.add("show");
+    $("#lbMeta").textContent = it.album.title + " · " + it.id;
+    $("#lbCount").textContent = (lb.idx + 1) + " / " + items.length;
+    // Nachbarn vorladen
+    [1, -1].forEach(function (d) {
+      const n = items[(lb.idx + d + items.length) % items.length];
+      const im = new Image(); im.src = n.src;
     });
-    bar.innerHTML = html;
-    bar.addEventListener("click", function (e) {
-      const chip = e.target.closest(".chip");
-      if (chip) setAlbum(chip.getAttribute("data-album"));
-    });
   }
-
-  function setAlbum(id, animate) {
-    currentAlbum = id;
-    stackIdx = 0;
-    $$(".chip").forEach(function (c) {
-      c.classList.toggle("active", c.getAttribute("data-album") === id);
-    });
-    switchView(animate !== false);
+  function lbOpen(albumId, idx, trigger) {
+    lb.album = ALBUMS.find(function (a) { return a.id === albumId; });
+    if (!lb.album) return;
+    lb.idx = idx;
+    lb.last = trigger || null;
+    lb.el.hidden = false;
+    document.body.classList.add("lb-open");
+    lbShow();
+    $("#lbClose").focus();
   }
-
-  /* Wechsel mit Mini-Shuffle wie beim Intro */
-  function switchView(animate) {
-    if (animate) { transitionGallery(renderGallery); } else { renderGallery(); }
+  function lbClose() {
+    lb.el.hidden = true;
+    document.body.classList.remove("lb-open");
+    if (lb.last) lb.last.focus();
   }
-
-  let transToken = 0;
-  function transitionGallery(then) {
-    const items = photosFor();
-    if (reduceMotion || items.length === 0) { then(); return; }
-    const token = ++transToken;
-    const g = $("#gallery");
-    g.innerHTML = '<div class="gal-shuffle"><img alt=""><span class="gs-count"></span></div>';
-    const img = $(".gal-shuffle img", g);
-    const cnt = $(".gs-count", g);
-    const pool = shuffle(items.map(function (p) { return p.src; }));
-    const total = Math.min(pool.length, 9);
-    let i = 0, delay = 110;
-    (function t() {
-      if (token !== transToken) return; // neuer Wechsel hat übernommen
-      img.src = pool[i % pool.length];
-      cnt.textContent = String(i + 1).padStart(2, "0");
-      i++;
-      if (i >= total) { then(); return; }
-      delay = Math.max(50, delay * 0.87); // beschleunigt wie das Intro
-      setTimeout(t, delay);
-    })();
+  function lbStep(d) {
+    const n = lb.album._items.length;
+    lb.idx = (lb.idx + d + n) % n;
+    lbShow();
   }
-
-  function photosFor() {
-    if (currentAlbum === "all") return ALL;
-    return ALL.filter(function (p) { return p.album.id === currentAlbum; });
-  }
-
-  /* ---------- Galerie: Ansichts-Modi ---------- */
-  function initModes() {
-    const bar = $("#modeBar");
-    bar.addEventListener("click", function (e) {
-      const btn = e.target.closest(".mode-btn");
-      if (!btn) return;
-      if (btn.getAttribute("data-mode") === currentMode) return;
-      currentMode = btn.getAttribute("data-mode");
-      $$(".mode-btn").forEach(function (b) { b.classList.toggle("active", b === btn); });
-      stackIdx = 0;
-      switchView(true);
-    });
-    $('.mode-btn[data-mode="grid"]').classList.add("active");
-  }
-
-  function phHtml(p, i) {
-    return '<div class="ph" data-i="' + i + '" data-cursor="Ansehen" style="animation-delay:' + Math.min(i * 0.05, 0.9).toFixed(2) + 's">' +
-      '<img src="' + p.src + '" alt="' + p.album.title + ' — Foto ' + (i + 1) + '" loading="lazy" decoding="async">' +
-      '<span class="ph-tag">' + p.album.title + ' · ' + String(i + 1).padStart(2, "0") + '</span>' +
-    '</div>';
-  }
-
-  function renderGallery() {
-    const g = $("#gallery");
-    const items = photosFor();
-    const albumObj = ALBUMS.find(function (a) { return a.id === currentAlbum; });
-    const sub = currentAlbum === "all"
-      ? items.length + " Fotos · alle Länder & Städte"
-      : items.length + " Fotos · " + (albumObj ? albumObj.title : "");
-    $("#galSub").textContent = sub;
-    if (items.length === 0) { g.innerHTML = '<p class="film-hint">Noch keine Fotos in diesem Album.</p>'; return; }
-
-    if (currentMode === "grid") {
-      g.innerHTML = '<div class="gal-grid">' + items.map(phHtml).join("") + '</div>';
-    } else if (currentMode === "mosaic") {
-      g.innerHTML = '<div class="gal-mosaic">' + items.map(phHtml).join("") + '</div>';
-    } else if (currentMode === "film") {
-      g.innerHTML = '<div class="gal-film">' + items.map(phHtml).join("") + '</div>' +
-        '<p class="film-hint">← ziehen oder scrollen →</p>';
-      enableDrag($(".gal-film", g));
-    } else if (currentMode === "stack") {
-      g.innerHTML = '<div class="gal-stack" id="stackWrap"></div>' +
-        '<div class="stack-ui">' +
-          '<button class="stack-btn" id="stPrev" data-cursor="Zurück" aria-label="Vorheriges">‹</button>' +
-          '<span class="stack-count" id="stCount"></span>' +
-          '<button class="stack-btn" id="stNext" data-cursor="Weiter" aria-label="Nächstes">›</button>' +
-        '</div>';
-      layoutStack(items);
-      $("#stNext").addEventListener("click", function () { stackNext(items); });
-      $("#stPrev").addEventListener("click", function () { stackPrev(items); });
-    }
-  }
-
-  /* ---------- Stapel-Modus ---------- */
-  function stackTransform(k, idx) {
-    const rot = k === 0 ? 0 : (seeded(idx + 7) * 10 - 5);
-    return "translate(" + (k * 7) + "px," + (k * -11) + "px) rotate(" + rot.toFixed(2) + "deg) scale(" + (1 - k * 0.045).toFixed(3) + ")";
-  }
-
-  function layoutStack(items) {
-    const wrap = $("#stackWrap");
-    if (!wrap) return;
-    wrap.innerHTML = "";
-    const visible = Math.min(5, items.length);
-    for (let k = visible - 1; k >= 0; k--) {
-      const idx = (stackIdx + k) % items.length;
-      const card = document.createElement("div");
-      card.className = "stack-card";
-      card.setAttribute("data-i", idx);
-      card.setAttribute("data-cursor", "Ansehen");
-      card.style.transform = stackTransform(k, idx);
-      card.style.zIndex = String(20 - k);
-      const im = document.createElement("img");
-      im.src = items[idx].src;
-      im.alt = items[idx].album.title;
-      im.decoding = "async";
-      card.appendChild(im);
-      wrap.appendChild(card);
-    }
-    const count = $("#stCount");
-    if (count) count.textContent = String(stackIdx + 1).padStart(2, "0") + " / " + items.length;
-  }
-
-  function stackNext(items) {
-    if (stackBusy) return;
-    stackBusy = true;
-    const wrap = $("#stackWrap");
-    const cards = wrap ? $$(".stack-card", wrap) : [];
-    const top = wrap ? wrap.lastElementChild : null; // oberste Karte (k=0 wird zuletzt angehängt)
-    if (top) top.classList.add("out");
-    // Alle anderen Karten gleiten eine Position nach vorne
-    cards.forEach(function (c, j) {
-      if (c === top) return;
-      const k = cards.length - 1 - j;       // aktuelle Tiefe
-      c.style.transform = stackTransform(k - 1, parseInt(c.getAttribute("data-i"), 10));
-    });
-    setTimeout(function () {
-      stackIdx = (stackIdx + 1) % items.length;
-      layoutStack(items);
-      stackBusy = false;
-    }, reduceMotion ? 0 : 450);
-  }
-
-  function stackPrev(items) {
-    if (stackBusy) return;
-    stackBusy = true;
-    stackIdx = (stackIdx - 1 + items.length) % items.length;
-    layoutStack(items);
-    // Neue oberste Karte fliegt von links herein
-    const wrap = $("#stackWrap");
-    const top = wrap ? wrap.lastElementChild : null;
-    if (top && !reduceMotion) {
-      top.classList.add("in-start");
-      void top.offsetWidth;
-      top.classList.remove("in-start");
-    }
-    setTimeout(function () { stackBusy = false; }, reduceMotion ? 0 : 450);
-  }
-
-  /* ---------- Filmstreifen: Ziehen mit der Maus ---------- */
-  function enableDrag(el) {
-    if (!el) return;
-    let down = false, startX = 0, startScroll = 0;
-    el.addEventListener("pointerdown", function (e) {
-      e.preventDefault(); // verhindert natives Bild-Ziehen
-      down = true;
-      dragMoved = 0;
-      startX = e.clientX;
-      startScroll = el.scrollLeft;
-      el.classList.add("dragging");
-    });
-    el.addEventListener("pointermove", function (e) {
-      if (!down) return;
-      const dx = e.clientX - startX;
-      dragMoved = Math.max(dragMoved, Math.abs(dx));
-      el.scrollLeft = startScroll - dx;
-    });
-    function up() { down = false; el.classList.remove("dragging"); }
-    el.addEventListener("pointerup", up);
-    el.addEventListener("pointercancel", up);
-    el.addEventListener("mouseleave", up);
-    // Mausrad: vertikal scrollen bewegt den Filmstreifen horizontal
-    el.addEventListener("wheel", function (e) {
-      if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
-        e.preventDefault();
-        el.scrollLeft += e.deltaY;
-      }
-    }, { passive: false });
-  }
-
-  /* ---------- Lightbox ---------- */
-  let lbItems = [], lbIdx = 0;
 
   function initLightbox() {
-    const lb = $("#lightbox");
-    const img = $("#lbImg");
+    lb.el = $("#lightbox");
+    lb.img = $("#lbImg");
 
-    function show() {
-      const p = lbItems[lbIdx];
-      if (!p) return;
-      img.classList.remove("show");
-      const pre = new Image();
-      pre.onload = pre.onerror = function () {
-        img.src = p.src;
-        requestAnimationFrame(function () { img.classList.add("show"); });
-      };
-      pre.src = p.src;
-      $("#lbCaption").textContent = p.album.title + " — " + (lbIdx + 1) + " / " + lbItems.length;
-      // Nachbarn vorladen
-      [lbIdx + 1, lbIdx - 1].forEach(function (n) {
-        const q = lbItems[(n + lbItems.length) % lbItems.length];
-        if (q) { const pl = new Image(); pl.src = q.src; }
-      });
-    }
+    document.addEventListener("click", function (e) {
+      const b = e.target.closest(".ph");
+      if (!b) return;
+      lbOpen(b.dataset.album, parseInt(b.dataset.idx, 10), b);
+    });
+    $("#lbClose").addEventListener("click", lbClose);
+    $("#lbPrev").addEventListener("click", function () { lbStep(-1); });
+    $("#lbNext").addEventListener("click", function () { lbStep(1); });
+    $("#lbStage").addEventListener("click", function (e) { if (e.target === e.currentTarget) lbClose(); });
 
-    window.openLightbox = function (i, items) {
-      lbItems = items;
-      lbIdx = i;
-      lb.classList.add("open");
-      lb.setAttribute("aria-hidden", "false");
-      document.body.style.overflow = "hidden";
-      show();
-    };
+    lb.el.addEventListener("keydown", function (e) {
+      if (e.key === "ArrowLeft") { e.preventDefault(); lbStep(-1); }
+      else if (e.key === "ArrowRight") { e.preventDefault(); lbStep(1); }
+      else if (e.key === "Escape") { e.preventDefault(); lbClose(); }
+      else if (e.key === "Tab") {
+        // Fokus in der Bildansicht halten
+        const f = $$("button", lb.el);
+        const first = f[0], last = f[f.length - 1];
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      }
+    });
 
-    function close() {
-      lb.classList.remove("open");
-      lb.setAttribute("aria-hidden", "true");
-      document.body.style.overflow = "";
-    }
-    function next() { lbIdx = (lbIdx + 1) % lbItems.length; show(); }
-    function prev() { lbIdx = (lbIdx - 1 + lbItems.length) % lbItems.length; show(); }
-
-    $(".lb-close").addEventListener("click", close);
-    $(".lb-next").addEventListener("click", next);
-    $(".lb-prev").addEventListener("click", prev);
-    lb.addEventListener("click", function (e) { if (e.target === lb) close(); });
-    document.addEventListener("keydown", function (e) {
-      if (!lb.classList.contains("open")) return;
-      if (e.key === "Escape") close();
-      else if (e.key === "ArrowRight") next();
-      else if (e.key === "ArrowLeft") prev();
+    // Wischen auf dem Handy
+    let x0 = null, y0 = null;
+    const stage = $("#lbStage");
+    stage.addEventListener("touchstart", function (e) {
+      x0 = e.touches[0].clientX; y0 = e.touches[0].clientY;
+    }, { passive: true });
+    stage.addEventListener("touchend", function (e) {
+      if (x0 === null) return;
+      const dx = e.changedTouches[0].clientX - x0;
+      const dy = e.changedTouches[0].clientY - y0;
+      if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) lbStep(dx < 0 ? 1 : -1);
+      x0 = y0 = null;
     });
   }
 
-  /* ---------- Galerie-Klicks (Lightbox öffnen) ---------- */
-  function initGalleryClicks() {
-    $("#gallery").addEventListener("click", function (e) {
-      if (dragMoved > 8) { dragMoved = 0; return; } // war ein Zieh-Vorgang, kein Klick
-      const items = photosFor();
-      const card = e.target.closest(".stack-card");
-      if (card) {
-        window.openLightbox(parseInt(card.getAttribute("data-i"), 10), items);
-        return;
-      }
-      const ph = e.target.closest(".ph");
-      if (ph) {
-        window.openLightbox(parseInt(ph.getAttribute("data-i"), 10), items);
-      }
-    });
-  }
-
-  /* ---------- Kontaktformular (Formspree, mit mailto-Notfalllösung) ---------- */
-  function initContactForm() {
+  /* ---------- Kontaktformular (Formspree, sonst Mail-App) ---------- */
+  function initForm() {
     const form = $("#contactForm");
-    if (!form) return;
+    const note = $("#formNote");
+    const btn = $("#cfSubmit");
+    const label = btn.textContent;
+
+    function setNote(text, err) {
+      note.textContent = text;
+      note.classList.toggle("err", !!err);
+    }
+
     form.addEventListener("submit", function (e) {
       e.preventDefault();
-      const name = $("#cfName").value.trim();
-      const mail = $("#cfMail").value.trim();
-      const subj = $("#cfSubject").value.trim();
-      const msg = $("#cfMsg").value.trim();
-      const note = $("#formNote");
-      const btn = $("#cfSubmit");
-      if (!name || !mail || !msg) {
-        note.textContent = "Bitte Name, E-Mail und Nachricht ausfüllen.";
-        note.style.color = "var(--accent)";
-        return;
-      }
+      const fields = { name: $("#cfName"), mail: $("#cfMail"), msg: $("#cfMsg") };
+      let bad = null;
+      Object.keys(fields).forEach(function (k) {
+        const el = fields[k];
+        const ok = el.value.trim() !== "" && (k !== "mail" || /^\S+@\S+\.\S+$/.test(el.value.trim()));
+        el.setAttribute("aria-invalid", ok ? "false" : "true");
+        if (!ok && !bad) bad = el;
+      });
+      if (bad) { setNote("Bitte Name, eine gültige E-Mail und eine Nachricht eintragen.", true); bad.focus(); return; }
+
+      const name = fields.name.value.trim();
+      const mail = fields.mail.value.trim();
+      const msg = fields.msg.value.trim();
 
       function mailtoFallback() {
-        const subject = "Anfrage über die Website" + (subj ? " — " + subj : "");
         const body = "Hallo Luca\n\n" + msg + "\n\n—\n" + name + "\n" + mail;
         window.location.href = "mailto:" + SITE.email +
-          "?subject=" + encodeURIComponent(subject) +
+          "?subject=" + encodeURIComponent("Anfrage über die Website") +
           "&body=" + encodeURIComponent(body);
-        note.textContent = "Direkter Versand nicht möglich — deine E-Mail-App öffnet sich stattdessen.";
-        note.style.color = "";
+        setNote("Deine Mail-App öffnet sich mit der Nachricht.");
       }
 
       if (!SITE.formspree || !window.fetch) { mailtoFallback(); return; }
 
       btn.disabled = true;
       btn.textContent = "Wird gesendet …";
-      note.textContent = "";
-      note.style.color = "";
+      setNote("");
 
-      fetch(SITE.formspree, {
-        method: "POST",
-        headers: { "Accept": "application/json" },
-        body: new FormData(form)
-      }).then(function (res) {
-        btn.disabled = false;
-        btn.textContent = "Anfrage senden";
-        if (res.ok) {
-          form.reset();
-          note.textContent = "Danke! Deine Anfrage ist unterwegs — ich melde mich bald.";
-          note.style.color = "var(--accent)";
-        } else {
+      const data = new FormData(form);
+      data.append("_subject", "Anfrage über lucarieser.com");
+
+      fetch(SITE.formspree, { method: "POST", headers: { "Accept": "application/json" }, body: data })
+        .then(function (res) {
+          btn.disabled = false;
+          btn.textContent = label;
+          if (res.ok) {
+            form.reset();
+            setNote("Danke, deine Nachricht ist angekommen. Ich melde mich bald.");
+          } else {
+            mailtoFallback();
+          }
+        })
+        .catch(function () {
+          btn.disabled = false;
+          btn.textContent = label;
           mailtoFallback();
-        }
-      }).catch(function () {
-        btn.disabled = false;
-        btn.textContent = "Anfrage senden";
-        mailtoFallback();
-      });
+        });
     });
   }
 
   /* ---------- Start ---------- */
-  function init() {
-    initTexts();
-    renderAlbums();
-    renderChips();
-    initModes();
-    setAlbum("all", false);
-    initCursor();
-    initLightbox();
-    initGalleryClicks();
-    initContactForm();
-    initReveal();
-    $("#heroImg").src = coverOf(ALBUMS[Math.floor(Math.random() * ALBUMS.length)]);
-    runIntro();
-  }
+  initTexts();
+  renderHero();
+  renderIndex();
+  renderSeries();
+  initLightbox();
+  initForm();
 
-  try {
-    init();
-  } catch (err) {
-    // Notfall: Seite trotzdem anzeigen statt schwarzem Bildschirm
-    document.body.classList.add("ready");
-    const intro = document.getElementById("intro");
-    if (intro) { intro.classList.add("done", "hidden"); }
-    console.error("Fehler beim Initialisieren:", err);
+  // Direktlinks wie lucarieser.com/#hongkong: Bilder davor zuerst laden,
+  // damit sich nichts mehr verschiebt, dann ohne Animation hinspringen.
+  if (location.hash) {
+    const t = document.getElementById(decodeURIComponent(location.hash.slice(1)));
+    if (t) {
+      const jump = function () { t.scrollIntoView({ behavior: "instant", block: "start" }); };
+      const before = $$("main img").filter(function (im) {
+        return im.compareDocumentPosition(t) & Node.DOCUMENT_POSITION_FOLLOWING;
+      });
+      before.forEach(function (im) { im.loading = "eager"; });
+      jump();
+      Promise.all(before.map(function (im) {
+        return im.complete ? null : new Promise(function (r) { im.addEventListener("load", r); im.addEventListener("error", r); });
+      })).then(jump);
+    }
   }
 })();
