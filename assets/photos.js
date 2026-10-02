@@ -32,7 +32,7 @@ const SITE = {
   hero: { album: "newyork", photo: "L1012629.jpg" },
   // Danach folgt automatisch: "Fotografiert in Spanien, New York und …"
   intro: "Strassen, Städte und Licht.",
-  about: "[Zwei, drei Sätze über dich: wer du bist, wo du lebst, womit du fotografierst und was dich auf der Strasse interessiert.]",
+  about: "Ich fotografiere, was mir auf der Strasse begegnet. Kameras begleiten mich schon mein ganzes Leben, eine ist immer dabei. Zuhause in der Schweiz.",
   year: new Date().getFullYear()
 };
 
