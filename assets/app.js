@@ -136,6 +136,15 @@
         '</section>';
     }).join("");
 
+    // Hochformate erkennen, damit sie nicht überlang werden
+    $("#series").addEventListener("load", function (e) {
+      const im = e.target;
+      if (im.tagName === "IMG" && im.naturalHeight > im.naturalWidth) {
+        const fig = im.closest("figure");
+        if (fig) fig.classList.add("is-tall");
+      }
+    }, true);
+
     $$(".more-btn").forEach(function (btn) {
       btn.addEventListener("click", function () {
         const box = document.getElementById(btn.getAttribute("aria-controls"));
