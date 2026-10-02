@@ -128,7 +128,7 @@ const ALBUMS = [
     title: "Portugal",
     country: "Portugal",
     city: "Portugal",
-    description: "[Ende von Europa]",
+    description: "Ende von Europa.",
     folder: "Fotos/Portugal",
     cover: "L1014496.jpg",
     photos: [
