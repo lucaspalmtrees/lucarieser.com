@@ -64,10 +64,6 @@
     $("#aboutText").textContent = SITE.about || "";
     $("#footName").textContent = "© " + SITE.year + " " + SITE.name;
 
-    const mail = $("#mailLink");
-    mail.href = "mailto:" + SITE.email;
-    mail.textContent = SITE.email;
-
     $$(".js-yt").forEach(function (a) { a.href = SITE.youtube; });
     $$(".js-ig").forEach(function (a) { a.href = SITE.instagram; });
     $$(".js-li").forEach(function (a) { a.href = SITE.linkedin; });
@@ -241,7 +237,7 @@
     });
   }
 
-  /* ---------- Kontaktformular (Formspree, sonst Mail-App) ---------- */
+  /* ---------- Kontaktformular (Formspree) ---------- */
   function initForm() {
     const form = $("#contactForm");
     const note = $("#formNote");
@@ -265,19 +261,11 @@
       });
       if (bad) { setNote("Bitte Name, eine gültige E-Mail und eine Nachricht eintragen.", true); bad.focus(); return; }
 
-      const name = fields.name.value.trim();
-      const mail = fields.mail.value.trim();
-      const msg = fields.msg.value.trim();
-
-      function mailtoFallback() {
-        const body = "Hallo Luca\n\n" + msg + "\n\n—\n" + name + "\n" + mail;
-        window.location.href = "mailto:" + SITE.email +
-          "?subject=" + encodeURIComponent("Anfrage über die Website") +
-          "&body=" + encodeURIComponent(body);
-        setNote("Deine Mail-App öffnet sich mit der Nachricht.");
+      function failed() {
+        setNote("Das Senden hat nicht geklappt. Bitte versuch es später nochmals oder schreib mir auf Instagram.", true);
       }
 
-      if (!SITE.formspree || !window.fetch) { mailtoFallback(); return; }
+      if (!SITE.formspree || !window.fetch) { failed(); return; }
 
       btn.disabled = true;
       btn.textContent = "Wird gesendet …";
@@ -294,13 +282,13 @@
             form.reset();
             setNote("Danke, deine Nachricht ist angekommen. Ich melde mich bald.");
           } else {
-            mailtoFallback();
+            failed();
           }
         })
         .catch(function () {
           btn.disabled = false;
           btn.textContent = label;
-          mailtoFallback();
+          failed();
         });
     });
   }

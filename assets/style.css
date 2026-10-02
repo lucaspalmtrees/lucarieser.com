@@ -213,12 +213,7 @@ a:hover { color: var(--accent); }
 
 #kontakt { padding-bottom: 120px; }
 .contact { grid-column: 4 / 13; display: flex; flex-direction: column; gap: 56px; min-width: 0; }
-.mail {
-  font-size: clamp(30px, 5vw, 72px);
-  font-weight: 500; letter-spacing: -.03em; line-height: 1;
-  text-decoration-thickness: 2px; text-underline-offset: .14em;
-  overflow-wrap: anywhere;
-}
+.contact-lead { font-size: clamp(26px, 3.4vw, 48px); font-weight: 500; letter-spacing: -.025em; line-height: 1.1; max-width: 18ch; }
 .contact-grid {
   display: grid;
   grid-template-columns: repeat(9, minmax(0, 1fr));
@@ -380,15 +375,5 @@ body.lb-open { overflow: hidden; }
 
   #kontakt { padding-bottom: 80px; }
   .contact { gap: 32px; }
-  .mail { font-size: 30px; line-height: 1.1; text-underline-offset: 6px; }
-  .contact-grid { display: flex; flex-direction: column; gap: 40px; }
-  .form-row { grid-template-columns: minmax(0, 1fr); gap: 16px; }
-  .form { gap: 16px; }
-  .btn { width: 100%; height: 52px; font-size: 16px; }
-
-  .site-foot { font-size: 11px; padding-top: 4px; padding-bottom: 4px; }
-  .foot-brand .logo { width: 16px; height: 16px; }
-
-  .lb-bar { padding: 12px var(--pad); }
-  .lb-stage { padding: 8px 0; }
-}
+  .contact-lead { font-size: 28px; }
+  

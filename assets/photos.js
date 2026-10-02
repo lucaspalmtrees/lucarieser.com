@@ -25,7 +25,6 @@ const SITE = {
   youtube: "https://www.youtube.com/@lucarieser",
   instagram: "https://www.instagram.com/lucarieser/",
   linkedin: "https://ch.linkedin.com/in/luca-rieser-b77211278",
-  email: "lucarieser@icloud.com",
   formspree: "https://formspree.io/f/xlgkojgl",
   // Ordnername ist auf dem Mac als "u + Umlautpunkte" gespeichert, daher \u0308
   portrait: "Bilder fu\u0308r Kontakt Luca/L1011539.jpg",
